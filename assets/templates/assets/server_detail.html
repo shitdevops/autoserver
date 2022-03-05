@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}
+    <title>资产详细</title>
+{% endblock title %}
+
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>资产详细: {{ obj.asset_name }} - {{ obj.sn }}</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'assets:server' %}">资产列表</a></li>
+                        <li class="breadcrumb-item active">{{ obj.asset_name }}</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <h4><b>概览：</b></h4>
+            <table width="100%" class="table"
+                   style="border-left:3px solid deepskyblue;border-bottom:1px solid deepskyblue">
+                <thead>
+                <tr>
+                    <th>资产名称</th>
+                    <th>业务线</th>
+                    <th>状态</th>
+                    <th>机房</th>
+                    <th>创建日期</th>
+                    <th>更新日期</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{ obj.asset_name }}</td>
+
+                    <td>{{ obj.business_unit | default_if_none:"N/A" }}</td>
+
+                    {% if obj.status == 0 %}
+                        <td><label class="badge bg-success">{{ obj.get_status_display }}</label></td>
+                    {% elif obj.status == 1 %}
+                        <td><label class="badge bg-warning">{{ obj.get_status_display }}</label></td>
+                    {% elif obj.status == 2 %}
+                        <td><label class="badge bg-black">{{ obj.get_status_display }}</label></td>
+                    {% elif obj.status == 3 %}
+                        <td><label class="badge bg-danger">{{ obj.get_status_display }}</label></td>
+                    {% elif obj.status == 4 %}
+                        <td><label class="badge bg--info">{{ obj.get_status_display }}</label></td>
+                    {% endif %}
+
+                    <td>{{ obj.idc|default:"N/A" }}</td>
+                    <td>{{ obj.create_at|date:"Y/m/d H:m:s" }}</td>
+                    <td>{{ obj.latest_date|date:'Y-m-d' }}</td>
+
+                </tr>
+                </tbody>
+            </table>
+            <br/>
+            <h4><b>服务器:</b></h4>
+            <table width="100%" class="table"
+                   style="border-left:3px solid green;border-bottom:1px solid green">
+                <thead>
+                <tr>
+                    <th>主机名</th>
+                    <th>系统</th>
+                    <th>系统版本</th>
+                    <th>SN号</th>
+                    <th>制造商</th>
+                    <th>型号</th>
+                    <th>添加方式</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{ obj.hostname }}</td>
+                    <td>{{ obj.os_platform|default:'N/A' }}</td>
+                    <td>{{ obj.os_version|default:'N/A' }}</td>
+                    <td>{{ obj.sn|default:'N/A' }}</td>
+                    <td>{{ obj.manufacturer|default:'N/A' }}</td>
+                    <td>{{ obj.model|default:'N/A' }}</td>
+                    <td>{{ obj.get_created_by_display }}</td>
+                </tr>
+                </tbody>
+            </table>
+            <br/>
+            <h4><b>CPU:</b></h4>
+            <table width="100%" class="table"
+                   style="border-left:3px solid purple;border-bottom:1px solid purple">
+                <thead>
+                <tr>
+                    <th>CPU型号</th>
+                    <th>CPU核数</th>
+                    <th>CPU物理个数</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{ obj.cpu_model|default:'N/A' }}</td>
+                    <td>{{ obj.cpu_count|default:'N/A' }}</td>
+                    <td>{{ obj.cpu_physical_count|default:'N/A' }}</td>
+                </tr>
+                </tbody>
+            </table>
+            <br/>
+            <h4><b>内存:</b></h4>
+            <table width="100%" class="table"
+                   style="border-left:3px solid orangered;border-bottom:1px solid orangered">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>插槽位</th>
+                    <th>制造商</th>
+                    <th>型号</th>
+                    <th>容量GB</th>
+                    <th>SN号</th>
+                    <th>速度</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for ram in obj.memory_list.all %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ ram.slot }}</td>
+                        <td>{{ ram.manufacturer|default:'N/A' }}</td>
+                        <td>{{ ram.model|default:'N/A' }}</td>
+                        <td>{{ ram.capacity|default:'N/A' }}</td>
+                        <td>{{ ram.sn|default:'N/A' }}</td>
+                        <td>{{ ram.speed|default:'N/A' }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <br/>
+            <h4><b>硬盘:</b></h4>
+            <table width="100%" class="table"
+                   style="border-left:3px solid brown;border-bottom:1px solid brown">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>插槽位</th>
+                    <th>磁盘型号</th>
+                    <th>磁盘容量GB</th>
+                    <th>磁盘类型</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for disk in obj.disk_list.all %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ disk.slot|default:'N/A' }}</td>
+                        <td>{{ disk.model|default:'N/A' }}</td>
+                        <td>{{ disk.capacity|default:'N/A' }}</td>
+                        <td>{{ disk.pd_type|default:'N/A' }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <br/>
+            <h4><b>网卡:</b></h4>
+            <table width="100%" class="table"
+                   style="border-left:3px solid #a59b1a;border-bottom:1px solid #a59b1a">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>网卡名字</th>
+                    <th>mac地址</th>
+                    <th>子网掩码</th>
+                    <th>ip地址</th>
+                    <th>状态</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for nic in obj.nic_list.all %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ nic.name|default:'N/A' }}</td>
+                        <td>{{ nic.hwaddr|default:'N/A' }}</td>
+                        <td>{{ nic.netmask|default:'N/A' }}</td>
+                        <td>{{ nic.ipaddrs|default:'N/A' }}</td>
+
+                        {% if nic.up == 1 %}
+                            <td><label class="badge bg-success">active</label></td>
+                        {% elif nic.up == 0 %}
+                            <td><label class="badge bg-warning">passive</label></td>
+                        {% else %}
+                            <td><label class="badge bg-black">unknown</label></td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+{% endblock content %}

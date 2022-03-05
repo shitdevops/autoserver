@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>业务线信息</title>
+{% endblock title %}
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>业务线信息</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'assets:business_unit_list' %}">业务线列表</a></li>
+                        <li class="breadcrumb-item active">业务线信息</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ business.name }}-业务线信息</h3>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body row">
+            <div class="col-3 pt-1 pb-1 border-bottom">业务线名称：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ business.name }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">拥有资产数：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ business.server_set.all.count }}</div>
+            <div class="col-3 pt-1 pb-1">备注：</div>
+            <div class="col-9 pt-1 pb-1">{{ host.memo | default:'N/A' }}</div>
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+{% endblock content %}

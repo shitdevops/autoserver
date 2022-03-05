@@ -1,0 +1,238 @@
+from django.shortcuts import render, redirect, reverse, HttpResponse, get_object_or_404
+from repository import models
+from django.http import JsonResponse, Http404
+from django.shortcuts import get_object_or_404
+from user.tool import login_required, admin_required
+import json
+
+
+@login_required
+def dashboard(request):
+    obj = models.Server.objects.all()
+    total = models.Server.objects.count()
+    upline = models.Server.objects.filter(status=0).count()
+    offline = models.Server.objects.filter(status=1).count()
+    unknown = models.Server.objects.filter(status=2).count()
+    breakdown = models.Server.objects.filter(status=3).count()
+    backup = models.Server.objects.filter(status=4).count()
+    up_rate = round(upline / total * 100)
+    o_rate = round(offline / total * 100)
+    un_rate = round(unknown / total * 100)
+    bd_rate = round(breakdown / total * 100)
+    bu_rate = round(backup / total * 100)
+    return render(request, 'assets/dashboard.html', locals())
+
+
+@login_required
+def server(request):
+    servers = models.Server.objects.all()
+    tag_list = models.Tag.objects.all()
+    bus_list = models.BusinessUnit.objects.all()
+    idc_list = models.IDC.objects.all()
+    return render(request, 'assets/server.html', locals())
+
+
+@login_required
+def server_delete(request):
+    if request.method == 'POST':
+        if request.POST.get('type') == 'delete':
+            ret = {'status': True, 'error': None, 'data': None}
+            pk = request.POST.get('id')
+            delete_obj = models.Server.objects.get(id=pk)
+            delete_obj.delete()
+            return HttpResponse(json.dumps(ret))
+    else:
+        return HttpResponse("仅允许post请求")
+
+
+@login_required
+def detail(request, id):
+    obj = get_object_or_404(models.Server, id=id)
+    return render(request, 'assets/detail.html', locals())
+
+
+@login_required
+def server_record(request, id):
+    obj = models.AssetRecord.objects.filter(server_id=id).order_by('-create_at')
+    # for i in obj:
+    #     print(i.server.asset_name)
+    return render(request, 'assets/server_record.html', locals())
+
+
+@login_required
+def server_add(request):
+    obj = models.Server.objects.filter(pk=None).first()
+    from .forms import ServerForm
+    form_obj = ServerForm(request.POST, instance=obj)
+    if form_obj.is_valid():
+        form_obj.save()
+        return redirect(reverse('assets:server'))
+    return render(request, 'form.html', {'form_obj': form_obj})
+
+
+@login_required
+def server_edit(request):
+    ret = {'status': True, 'error': None, 'data': None}
+    try:
+        s_id = request.POST.get('s_id')
+        tag_id = request.POST.get('tag_id')
+        bus_id = request.POST.get('bus_id')
+        idc_id = request.POST.get('idc_id')
+        assets_name = request.POST.get('assets_name')
+        print(assets_name)
+        models.Server.objects.filter(id=s_id).update(idc_id=idc_id, asset_name=assets_name, business_unit_id=bus_id,                                          )
+        s_obj = models.Server.objects.get(id=s_id)
+        s_obj.tags.set([tag_id])
+    except Exception as e:
+        ret['status'] = False
+        ret['error'] = '请求错误'
+    return HttpResponse(json.dumps(ret))
+
+
+@login_required
+def business_unit_list(request):
+    business_list = models.BusinessUnit.objects.all().order_by('id')
+    return render(request, 'assets/business_list.html', locals())
+
+
+@login_required
+def business_unit_add(request):
+    bs = models.BusinessUnit.objects.filter(pk=None).first()
+    from .forms import BusinessUnitForm
+    form_obj = BusinessUnitForm(request.POST, instance=bs)
+    if form_obj.is_valid():
+        form_obj.save()
+        return redirect(reverse('assets:business_unit_list'))
+    return render(request, 'form.html', {'form_obj': form_obj})
+
+
+@login_required
+def business_unit_delete(request):
+    if request.method == 'POST':
+        if request.POST.get('type') == 'delete':
+            ret = {'status': True, 'error': None, 'data': None}
+            pk = request.POST.get('id')
+            delete_obj = models.BusinessUnit.objects.get(id=pk)
+            delete_obj.delete()
+            return HttpResponse(json.dumps(ret))
+    else:
+        return HttpResponse("仅允许post请求")
+
+
+@login_required
+@admin_required
+def business_edit(request, business_id):
+    business = get_object_or_404(models.BusinessUnit, pk=business_id)
+    return render(request, 'assets/business_edit.html', locals())
+
+
+@login_required
+def idc_list(request):
+    idc_obj = models.IDC.objects.all().order_by('id')
+    return render(request, 'assets/idc_list.html', locals())
+
+
+@login_required
+def idc_add(request):
+    idc = models.IDC.objects.filter(pk=None).first()
+    from .forms import IDCForm
+    form_obj = IDCForm(request.POST, instance=idc)
+    if form_obj.is_valid():
+        form_obj.save()
+        return redirect(reverse('assets:idc_list'))
+    return render(request, 'form.html', {'form_obj': form_obj})
+
+
+@login_required
+def idc_delete(request):
+    if request.method == 'POST':
+        if request.POST.get('type') == 'delete':
+            ret = {'status': True, 'error': None, 'data': None}
+            pk = request.POST.get('id')
+            delete_obj = models.IDC.objects.get(id=pk)
+            delete_obj.delete()
+            return HttpResponse(json.dumps(ret))
+    else:
+        return HttpResponse("仅允许post请求")
+
+
+@login_required
+def idc_edit(request):
+    ret = {'status': True, 'error': None, 'data': None}
+    try:
+        idc_id = request.POST.get('idc_id')
+        idc_name = request.POST.get('idc_name')
+        idc_memo = request.POST.get('idc_memo')
+        models.IDC.objects.filter(id=idc_id).update(name=idc_name, memo=idc_memo)
+    except Exception as e:
+        ret['status'] = False
+        ret['error'] = '请求错误'
+    return HttpResponse(json.dumps(ret))
+
+#
+# # def server_change(request, edit_id=None):
+# #     obj = models.Server.objects.filter(pk=edit_id).first()
+# #     print(obj)
+# #     form_obj = ServerForm(instance=obj)
+# #     print(form_obj)
+# #     if request.method == 'POST':
+# #         if request.POST.get('type') == 'delete':
+# #             ret = {'status': True, 'error': None, 'data': None}
+# #             pk = request.POST.get('id')
+# #             delete_obj = models.Server.objects.get(id=pk)
+# #             delete_obj.delete()
+# #             return HttpResponse(json.dumps(ret))
+# #         else:
+# #             form_obj = ServerForm(request.POST, instance=obj)
+# #             if form_obj.is_valid():
+# #                 form_obj.save()
+# #                 return redirect(reverse('web:server_list'))
+# #     if request.method == 'GET':
+# #         return render(request, 'form.html', {'form_obj': form_obj})
+#
+#
+# def server_detail(request, pk):
+#     server_obj = models.Server.objects.filter(pk=pk).first()
+#     nic_obj = server_obj.nic_list.all().order_by('pk')
+#     memory_obj = server_obj.memory_list.all().order_by('slot')
+#     disk_obj = server_obj.disk_list.all().order_by('slot')
+#     return render(request, 'server_detail.html', {"server_obj": server_obj,
+#                                                   "nic_obj": nic_obj,
+#                                                   'memory_obj': memory_obj,
+#                                                   'disk_obj': disk_obj, })
+#
+#
+# def server_record(request, pk):
+#     obj = models.AssetRecord.objects.filter(server_id=pk).order_by('-create_at')
+#     return render(request, 'server_record.html', {'obj': obj})
+#
+#
+# def idc_list(request):
+#     idc_obj = models.IDC.objects.all().order_by('id')
+#     paginator = Paginator(idc_obj, 1)
+#     # 获取 url 中的页码
+#     page = request.GET.get('page')
+#     # 将导航对象相应的页码内容返回给 servers
+#     idc = paginator.get_page(page)
+#     return render(request, 'idc_list.html', {'idc_obj': idc})
+#
+#
+# def idc_change(request, id=None):
+#     obj = models.IDC.objects.filter(pk=id).first()
+#     print(obj)
+#     form_obj = IDCForm(instance=obj)
+#     print(form_obj)
+#     if request.method == 'POST':
+#         if request.POST.get('type') == 'delete':
+#             ret = {'status': True, 'error': None, 'data': None}
+#             pk = request.POST.get('id')
+#             delete_obj = models.IDC.objects.get(id=pk)
+#             delete_obj.delete()
+#             return HttpResponse(json.dumps(ret))
+#         else:
+#             form_obj = IDCForm(request.POST, instance=obj)
+#             if form_obj.is_valid():
+#                 form_obj.save()
+#                 return redirect(reverse('web:idc_list'))
+#     if request.method == 'GET':
+#         return render(request, 'form.html', {'form_obj': form_obj})

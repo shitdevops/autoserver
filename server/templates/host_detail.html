@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>主机信息</title>
+{% endblock title %}
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>主机信息</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'server:host_lists' %}">主机列表</a></li>
+                        <li class="breadcrumb-item active">主机信息</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ host.hostname }}-主机信息</h3>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body row">
+            <div class="col-3 pt-1 pb-1 border-bottom">主机名：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ host.hostname }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">主机IP：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ host.int_ip }}</div>
+{#            <div class="col-3 pt-1 pb-1 border-bottom">公网IP：</div>#}
+{#            <div class="col-9 pt-1 pb-1 border-bottom">{{ host.ex_ip | default:'N/A' }}</div>#}
+            <div class="col-3 pt-1 pb-1 border-bottom">环境：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ host.get_env_display }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">端口：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ host.port }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">系统/型号：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ host.release }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">用户名：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ host.remote_user.username }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">添加时间：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ host.create_time | date:"Y/m/d H:i:s" }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">是否启用：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{% if host.enabled %}启用{% else %}
+                <span style="color:red">禁用</span>{% endif %}</div>
+            <div class="col-3 pt-1 pb-1">备注：</div>
+            <div class="col-9 pt-1 pb-1">{{ host.memo | default:'' }}</div>
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+{% endblock content %}

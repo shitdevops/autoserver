@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>添加机房</title>
+{% endblock title %}
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>添加机房</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'assets:idc_list' %}">机房列表</a></li>
+                        <li class="breadcrumb-item active">添加机房</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">添加机房</h3>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body row">
+            <div class="col-2 pt-1 pb-1">机房名称<span style="color:red;"> * </span>：</div>
+            <div class="col-10 pt-1 pb-1"><input class="form-control" type="text" id="name"></div>
+            <div class="col-2 pt-1 pb-1">备注：</div>
+            <div class="col-10 pt-1 pb-1"><textarea id="memo" class="form-control"></textarea></div>
+            <div class="offset-2 col-10 pt-2">
+                <a class="btn btn-default" href="{% url 'assets:idc_list' %}">返回</a>
+                <button class="btn btn-success ml-2" onclick="changeidc(this);">提交</button>
+            </div>
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+{% endblock content %}
+
+{% block js %}
+    <script>
+        // 添加主机
+        changeidc = function (event) {
+            toastr.options.closeButton = true;
+            toastr.options.showMethod = 'slideDown';
+            toastr.options.hideMethod = 'fadeOut';
+            toastr.options.closeMethod = 'fadeOut';
+            toastr.options.timeOut = 3000;
+            toastr.options.extendedTimeOut = 0;
+            toastr.options.progressBar = true;
+            toastr.options.positionClass = 'toast-top-right';
+
+            $(event).removeAttr("onclick");
+            $(event).attr("disabled", true);
+
+            var name = $('#name').val();
+            var memo = $('#memo').val();
+
+            csrfmiddlewaretoken = '{{ request.COOKIES.csrftoken }}';
+
+            $.ajax({
+                url: "{% url 'assets_api:idc_add' %}",
+                async: true,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    'csrfmiddlewaretoken': csrfmiddlewaretoken,
+                    'name': name,
+                    'memo': memo,
+                },
+                timeout: 5000,
+                cache: true,
+                beforeSend: LoadFunction, //加载执行方法
+                error: errFunction,  //错误执行方法
+                success: succFunction, //成功执行方法
+            });
+
+            function LoadFunction() {
+                // 提交中
+            };
+
+            function errFunction() {
+                // 消息框
+                toastr.error('添加机房错误');
+                $(event).removeAttr("disabled");
+                $(event).attr("onclick", "changeidc(this);");
+            };
+
+            function succFunction(res) {
+                if (res.code != 200) {
+                    // 消息框
+                    toastr.error('添加机房错误: ' + res.err);
+                    $(event).removeAttr("disabled");
+                    $(event).attr("onclick", "changeidc(this);");
+                } else {
+                    // 消息框
+                    toastr.options.timeOut = 1000;
+                    toastr.options.onHidden = function () {
+                        window.location.href = "{% url 'assets:idc_list' %}";
+                    }
+                    toastr.success('添加机房成功');
+                }
+            };
+        }
+        // 添加主机
+    </script>
+{% endblock js %}

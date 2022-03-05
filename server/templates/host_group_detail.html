@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+    <title>主机组详情</title>
+{% endblock title %}
+{% block css %}{% endblock %}
+
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>主机组详情</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                        <li class="breadcrumb-item active"><a href="{% url 'server:host_groups' %}">主机组</a></li>
+                        <li class="breadcrumb-item active">主机组详情</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ group.group_name }}-主机组信息</h3>
+        </div>
+        <div class="card-body row">
+            <div class="col-3 pt-1 pb-1 border-bottom">主机组名：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ group.group_name }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">组内主机：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">
+                {% for host in group.hosts %}
+                    {{ host.hostname }}_{{ host.int_ip }}_{{ host.remote_user.username }}<br>
+                {% endfor %}
+            </div>
+            <div class="col-3 pt-1 pb-1">备注：</div>
+            <div class="col-9 pt-1 pb-1">{{ group.memo | default:'' }}</div>
+            <div class="col-3 pt-1 pb-1">创建时间：</div>
+            <div class="col-9 pt-1 pb-1">{{ group.create_time |date:"Y/m/d H:i:s" }}</div>
+        </div>
+
+    </div>
+
+
+{% endblock %}
+

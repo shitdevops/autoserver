@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+    <title>主机用户列表</title>
+{% endblock title %}
+{% block css %}{% endblock %}
+
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>主机用户</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                        <li class="breadcrumb-item active">主机用户</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                主机用户列表
+                <a href="{% url 'server:user_add' %}" class="btn btn-sm btn-primary ml-3">添加</a>
+            </h3>
+        </div>
+
+        <!-- /.card-header -->
+        <div class="card-body">
+            <table id="assets-lists" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>名称</th>
+                    <th>用户名</th>
+                    <th>绑定主机数</th>
+                    <th>备注</th>
+                    <th>添加时间</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for user in h_users %}
+                    <tr aid="{{ user.pk }}">
+                        <td>{{ forloop.counter }}</td>
+                        <td><a href="{% url 'server:user_detail' user.pk %}">{{ user.name }}</a></td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.remoteuserbindhost_set.all.count|default:'N/A' }}</td> <!-- 一对多反查 -->
+                        <td>{{ user.memo|default:'N/A' }}</td>
+                        <td>{{ user.create_time|date:"Y/m/d H:i:s" }}</td>
+                        <td>
+                            <a href="{% url 'server:user_edit' user.pk %}" class="btn btn-info btn-sm mb-1"><i class="fas fa-pencil-alt"></i>修改</a>
+                            {% if user.remoteuserbindhost_set.all.count == 0 %}
+                                <a href="javascript:void(0)" id="{{ user.id }}" title="{{ user.name }}"
+                                   onclick="createdeletemodal(this);" class="btn btn-danger btn-sm mb-1"><i class="fas fa-trash"></i>删除</a>
+                            {% else %}
+                                <a href="javascript:void(0)" class="btn btn-danger btn-sm disabled mb-1"><i class="fas fa-trash"></i>删除</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>没有数据！</tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!--删除确认窗口-->
+    <div id="modal-container">
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <!-- 删除提交 -->
+    <script>
+        createdeletemodal = function (event) {
+            var thisObj = $(event);	//js对象转jquery对象
+            var user_id = thisObj.attr('id');
+            var user_name = thisObj.attr("title");
+            // 生成弹出框，使用 \ 换行
+            $("#modal-container").html('<div id="modal-delete-' + user_id + '" class="iziModal"><div class="container-fluid"><div class="row">\
+									<div class="col-12 p-3"><h5 class="text-center mt-3">确定要删除主机 "' + user_name + '" 吗？</h5></div><div class="col-6 p-3">\
+									<button type="button" class="btn btn-block btn-secondary btn-flat" data-iziModal-close>取消</button></div><div class="col-6 p-3">\
+									<a href="javascript:void(0)"><button type="button" class="btn btn-block btn-success btn-flat" id="' + user_id + '-yes" title="\
+									' + user_name + '" onclick="deletethis(this);">确定</button></a></div></div></div></div>');
+
+            // 初始化弹出框
+            $("#modal-delete-" + user_id).iziModal({
+                iconClass: 'icon-announcement',
+                width: 450,
+                //padding: 10,
+                overlayClose: false,	// 是否允许点击模态窗口的外部来关闭模态窗口。
+                closeOnEscape: false, 	// 是否允许通过点击ESC键来关闭模态窗口。
+            });
+
+            // 打开弹出框
+            $('#modal-delete-' + user_id).iziModal('open');
+        }
+
+
+        deletethis = function (event) {
+            toastr.options.closeButton = true;
+            toastr.options.showMethod = 'slideDown';
+            toastr.options.hideMethod = 'fadeOut';
+            toastr.options.closeMethod = 'fadeOut';
+            toastr.options.timeOut = 4000;
+            toastr.options.extendedTimeOut = 0;
+
+            var thisObj = $(event);	//js对象转jquery对象
+            var user_id = thisObj.attr('id').split("-")[0];
+            var user_name = thisObj.attr("title");
+            csrfmiddlewaretoken = '{{ request.COOKIES.csrftoken }}';
+            $.ajax({
+                url: "{% url 'server_api:user_delete' %}",
+                async: true,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    'csrfmiddlewaretoken': csrfmiddlewaretoken,
+                    'id': user_id,
+                },
+                timeout: 10000,
+                cache: true,
+                beforeSend: LoadFunction, //加载执行方法
+                error: errFunction,  //错误执行方法
+                success: succFunction, //成功执行方法
+            });
+
+            function LoadFunction() {
+                //$("#aboutcontent").html('删除中...');
+                //alert('删除中');
+            };
+
+            function errFunction() {
+                // 关闭弹出框
+                $('#modal-delete-' + user_id).iziModal('close');
+                // 消息框
+                toastr.error('删除错误 "' + host_name + '"');
+            };
+
+            function succFunction(res) {
+                if (res.code != 200) {
+                    // 关闭弹出框
+                    $('#modal-delete-' + user_id).iziModal('close');
+                    // 消息框
+                    toastr.error('删除错误 "' + user_name + '": ' + res.err);
+                } else {
+                    // 关闭弹出框
+                    $('#modal-delete-' + user_id).iziModal('close');
+                    // 消息框
+                    toastr.options.timeOut = 1000;
+                    toastr.options.onHidden = function () {
+                        window.location.href = "{% url 'server:host_users' %}";
+                    }
+
+                    // 消息框
+                    toastr.success('成功删除 "' + user_name + '"');
+
+                }
+            };
+        }
+        // 删除
+    </script>
+{% endblock js %}

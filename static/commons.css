@@ -1,0 +1,17 @@
+body {
+    margin: 0;
+}
+
+.login {
+    width: 500px;
+    margin: 50px auto 0 auto;
+    border: 1px solid #dddddd;
+    padding: 10px 15px;
+}
+
+.yhdl {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+

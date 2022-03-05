@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>添加资产</title>
+{% endblock title %}
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>添加资产</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'assets:server' %}">资产列表</a></li>
+                        <li class="breadcrumb-item active">添加资产</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">添加资产</h3>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body row">
+{#            <div class="col-2 pt-1 pb-1">资产名<span style="color:red;"> * </span>：</div>#}
+{#            <div class="col-10 pt-1 pb-1"><input class="form-control" type="text" id="asset_name"></div>#}
+
+            <div class="col-2 pt-1 pb-1">主机名<span style="color:red;"> * </span>：</div>
+            <div class="col-10 pt-1 pb-1"><input class="form-control" type="text" id="hostname"></div>
+
+
+            <div class="col-2 pt-1 pb-1">添加方式<span style="color:red;"> * </span>：</div>
+            <div class="col-10 pt-1 pb-1">
+                <select class="form-control" id="created" style="width: 100%;">
+                    {% for created in created_by_choice %}
+                        <option value="{{ created.0 }}">{{ created.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-2 pt-1 pb-1">系统：</div>
+            <div class="col-10 pt-1 pb-1"><input class="form-control" type="text" id="os_platform"></div>
+
+            <div class="col-2 pt-1 pb-1">系统版本：</div>
+            <div class="col-10 pt-1"><input class="form-control" type="text" id="os_version"></div>
+
+            <div class="col-2 pt-1 pb-1">sn号<span style="color:red;"> * </span>：</div>
+            <div class="col-10 pt-1"><input class="form-control" type="text" id="sn"></div>
+
+            <div class="col-2 pt-1 pb-1">制造商：</div>
+            <div class="col-10 pt-1"><input class="form-control" type="text" id="manufacturer"></div>
+
+            <div class="col-2 pt-1 pb-1">型号：</div>
+            <div class="col-10 pt-1"><input class="form-control" type="text" id="model"></div>
+
+            <div class="col-2 pt-1 pb-1">CPU个数：</div>
+            <div class="col-10 pt-1"><input class="form-control" type="number" min="0" id="cpu_count"></div>
+
+            <div class="col-2 pt-1 pb-1">CPU物理个数：</div>
+            <div class="col-10 pt-1"><input class="form-control" type="number" min="0" id="cpu_physical_count"></div>
+
+            <div class="col-2 pt-1 pb-1">CPU型号：</div>
+            <div class="col-10 pt-1"><input class="form-control" type="text" id="cpu_model"></div>
+
+
+            <div class="col-2 pt-1 pb-1">设备状态<span style="color:red;"> * </span>：</div>
+            <div class="col-10 pt-1 pb-1">
+                <select class="form-control" id="status" style="width: 100%;">
+                    {% for status in asset_status %}
+                        <option value="{{ status.0 }}">{{ status.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-2 pt-1 pb-1">所属业务线：</div>
+            <div class="col-10 pt-1 pb-1">
+                <select class="form-control" id="business_id" style="width: 100%;">
+                    {% for bus in all_business %}
+                        <option value="{{ bus.id }}">{{ bus.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-2 pt-1 pb-1">所在机房：</div>
+            <div class="col-10 pt-1 pb-1">
+                <select class="form-control" id="idc_id" style="width: 100%;">
+                    {% for idc in all_idc %}
+                        <option value="{{ idc.id }}">{{ idc.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-2 pt-1 pb-1">备注：</div>
+            <div class="col-10 pt-1 pb-1"><textarea id="memo" class="form-control"></textarea></div>
+
+            <div class="offset-2 col-10 pt-2">
+                <a class="btn btn-default" href="{% url 'assets:server' %}">返回</a>
+                <button class="btn btn-success ml-2" onclick="addserver(this);">提交</button>
+            </div>
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+{% endblock content %}
+
+{% block js %}
+    <script>
+        // 添加资产
+        addserver = function (event) {
+            toastr.options.closeButton = true;
+            toastr.options.showMethod = 'slideDown';
+            toastr.options.hideMethod = 'fadeOut';
+            toastr.options.closeMethod = 'fadeOut';
+            toastr.options.timeOut = 3000;
+            toastr.options.extendedTimeOut = 0;
+            toastr.options.progressBar = true;
+            toastr.options.positionClass = 'toast-top-right';
+
+            $(event).removeAttr("onclick");
+            $(event).attr("disabled", true);
+
+
+            var hostname = $('#hostname').val();
+            var created = $('#created').val();
+            var os_platform = $('#os_platform').val();
+            var os_version = $('#os_version').val();
+            var sn = $('#sn').val();
+            var manufacturer = $('#manufacturer').val();
+            var model = $('#model').val();
+            var cpu_count = $('#cpu_count').val();
+            var cpu_physical_count = $('#cpu_physical_count').val();
+            var cpu_model = $('#cpu_model').val();
+            var status = $('#status').val();
+            var business_id = $('#business_id').val();
+            var idc_id = $('#idc_id').val();
+
+
+            var tag = new Array();
+            $("#tag_select_left option").each(function () {
+                var value = $(this).val();   //获取option值
+                tag.push(value);
+            });
+            tag = tag.join(",")
+
+            csrfmiddlewaretoken = '{{ request.COOKIES.csrftoken }}';
+
+            $.ajax({
+                url: "{% url 'assets_api:server_add' %}",
+                async: true,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    'csrfmiddlewaretoken': csrfmiddlewaretoken,
+
+                    'hostname': hostname,
+                    'created': created,
+                    'os_platform': os_platform,
+                    'os_version': os_version,
+                    'sn': sn,
+                    'manufacturer': manufacturer,
+                    'model': model,
+                    'cpu_count': cpu_count,
+                    'cpu_physical_count': cpu_physical_count,
+                    'cpu_model': cpu_model,
+                    'status': status,
+                    'business_id': business_id,
+                    'idc_id': idc_id,
+                    'tag': tag,
+                },
+                timeout: 5000,
+                cache: true,
+                beforeSend: LoadFunction, //加载执行方法
+                error: errFunction,  //错误执行方法
+                success: succFunction, //成功执行方法
+            });
+
+            function LoadFunction() {
+                // 提交中
+            };
+
+            function errFunction() {
+                // 消息框
+                toastr.error('添加主机错误');
+                $(event).removeAttr("disabled");
+                $(event).attr("onclick", "addserver(this);");
+            };
+
+            function succFunction(res) {
+                if (res.code != 200) {
+                    // 消息框
+                    toastr.error('添加资产错误: ' + res.err);
+                    $(event).removeAttr("disabled");
+                    $(event).attr("onclick", "addserver(this);");
+                } else {
+                    // 消息框
+                    toastr.options.timeOut = 1000;
+                    toastr.options.onHidden = function () {
+                        window.location.href = "{% url 'assets:server' %}";
+                    }
+                    toastr.success('添加资产成功');
+                }
+            };
+        }
+        // 添加资产
+        // 左右选项框
+        $(function () {
+            //移到右边
+            $('#add').click(function () {
+                //获取选中的选项，删除并追加给对方
+                $('#select1 option:selected').appendTo('#select2');
+            });
+            //移到左边
+            $('#remove').click(function () {
+                $('#select2 option:selected').appendTo('#select1');
+            });
+
+            //全部移到右边
+            $('#add_all').click(function () {
+                //获取全部的选项,删除并追加给对方
+                $('#select1 option').appendTo('#select2');
+            });
+            //全部移到左边
+            $('#remove_all').click(function () {
+                $('#select2 option').appendTo('#select1');
+            });
+
+            //双击选项
+            $('#tag_select_left').dblclick(function () { //绑定双击事件
+                //获取全部的选项,删除并追加给对方
+                $("option:selected", this).appendTo('#tag_select_right'); //追加给对方
+            });
+            //双击选项
+            $('#tag_select_right').dblclick(function () {
+                $("option:selected", this).appendTo('#tag_select_left');
+            });
+        });
+    </script>
+{% endblock js %}

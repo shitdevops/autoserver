@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}
+    <title>仪表盘</title>
+{% endblock title %}
+
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>仪表盘</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-danger">
+                    <div class="card-header border-transparent">
+                        <h4 class="card-title">设备状态<small> (百分比)</small>&nbsp;&nbsp;<i class="fas fa-chart-pie"></i>
+                        </h4>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body" style="overflow:hidden;">
+                        <div class="row">
+                            <div class="col-xs-6 col-md-2 col-md-offset-1 text-center">
+                                <input type="text" class="knob" value="{{ up_rate }}" data-width="120" data-height="120"
+                                       data-fgColor="#00a65a" data-readonly="true">
+
+                                <div class="knob-label">在线</div>
+                            </div>
+                            <!-- ./col -->
+                            <div class="col-xs-6 col-md-2 text-center">
+                                <input type="text" class="knob" value="{{ o_rate }}" data-width="120" data-height="120"
+                                       data-fgColor="#f56954" data-readonly="true">
+
+                                <div class="knob-label">下线</div>
+                            </div>
+                            <!-- ./col -->
+
+
+                            <div class="col-xs-6 col-md-2 text-center">
+                                <input type="text" class="knob" value="{{ bd_rate }}" data-width="120" data-height="120"
+                                       data-fgColor="#932ab6" data-readonly="true">
+
+                                <div class="knob-label">故障</div>
+                            </div>
+                            <!-- ./col -->
+                            <div class="col-xs-6 col-md-2 text-center">
+                                <input type="text" class="knob" value="{{ bu_rate }}" data-width="120" data-height="120"
+                                       data-fgColor="#3c8dbc" data-readonly="true">
+
+                                <div class="knob-label">备用</div>
+                            </div>
+                            <!-- ./col -->
+                            <div class="col-xs-6 col-md-2 text-center">
+                                <input type="text" class="knob" value="{{ un_rate }}" data-width="120" data-height="120"
+                                       data-fgColor="#cccccc" data-readonly="true">
+
+                                <div class="knob-label">未知</div>
+                            </div>
+                            <!-- ./col -->
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card card-success">
+                    <div class="card-header border-transparent">
+                        <h4 class="card-title">各状态资产数量&nbsp;&nbsp;<i class="fas fa-chart-bar"></i></h4>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body" style="overflow:hidden;">
+                        <div>
+                            <div id="barChart" style="max-width:100%;height:380px;"></div>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card card-info">
+                    <div class="card-header border-transparent">
+                        <h4 class="card-title">最新资产&nbsp;&nbsp;<i class="fas fa-copy"></i></h4>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-tool" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <!-- /.card-header -->
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table m-0">
+                                <thead>
+                                <tr>
+                                    <th>主机名称</th>
+                                    <th>SN序列号</th>
+                                    <th>状态</th>
+                                    <th>最后更新时间</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for asset in obj %}
+                                    <tr>
+                                        <td>{{ asset.hostname }}</td>
+                                        <td>{{ asset.sn }}</td>
+                                        {% if asset.status == 0 %}
+                                            <td><label class="badge bg-success">{{ asset.get_status_display }}</label>
+                                            </td>
+                                        {% elif asset.status == 1 %}
+                                            <td><label class="badge bg-warning">{{ asset.get_status_display }}</label>
+                                            </td>
+                                        {% elif asset.status == 2 %}
+                                            <td><label class="badge bg-black">{{ asset.get_status_display }}</label>
+                                            </td>
+                                        {% elif asset.status == 3 %}
+                                            <td><label class="badge bg-danger">{{ asset.get_status_display }}</label>
+                                            </td>
+                                        {% elif asset.status == 4 %}
+                                            <td><label class="badge bg-info">{{ asset.get_status_display }}</label>
+                                            </td>
+                                        {% endif %}
+                                        <td>{{ asset.latest_date|date:"Y/m/d" }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.table-responsive -->
+                    </div>
+                    <!-- /.card-body -->
+                    <div class="card-footer clearfix">
+{#                        <a href="javascript:void(0)" class="btn btn-sm btn-info float-left">新增 + </a>#}
+                        <a href="{% url 'assets:server' %}" class="btn btn-sm btn-secondary float-right">查看更多</a>
+                    </div>
+                    <!-- /.card-footer -->
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block js %}
+    <script src="https://cdn.bootcss.com/echarts/4.2.1/echarts.min.js"></script>
+    <script>
+        // 顶部服务器状态百分率圆图
+        $(function () {
+            /* jQueryKnob */
+
+            $(".knob").knob({
+                /*change : function (value) {
+          //console.log("change : " + value);
+          },
+          release : function (value) {
+          console.log("release : " + value);
+          },
+          cancel : function () {
+          console.log("cancel : " + this.value);
+          },*/
+                draw: function () {
+                    // "tron" case
+                    if (this.$.data('skin') == 'tron'
+                    ) {
+
+                        var a = this.angle(this.cv)  // Angle
+                            , sa = this.startAngle          // Previous start angle
+                            , sat = this.startAngle         // Start angle
+                            , ea                            // Previous end angle
+                            , eat = sat + a                 // End angle
+                            , r = true;
+
+                        this.g.lineWidth = this.lineWidth;
+
+                        this.o.cursor
+                        && (sat = eat - 0.3)
+                        && (eat = eat + 0.3);
+
+                        if (this.o.displayPrevious) {
+                            ea = this.startAngle + this.angle(this.value);
+                            this.o.cursor
+                            && (sa = ea - 0.3)
+                            && (ea = ea + 0.3);
+                            this.g.beginPath();
+                            this.g.strokeStyle = this.previousColor;
+                            this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, sa, ea, false);
+                            this.g.stroke();
+                        }
+
+                        this.g.beginPath();
+                        this.g.strokeStyle = r ? this.o.fgColor : this.fgColor;
+                        this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, sat, eat, false);
+                        this.g.stroke();
+
+                        this.g.lineWidth = 2;
+                        this.g.beginPath();
+                        this.g.strokeStyle = this.o.fgColor;
+                        this.g.arc(this.xy, this.xy, this.radius - this.lineWidth + 1 + this.lineWidth * 2 / 3, 0, 2 * Math.PI, false);
+                        this.g.stroke();
+
+                        return false;
+                    }
+                }
+            });
+            /* END JQUERY KNOB */
+        });
+
+        /* 资产柱状图 */
+        $(function () {
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('barChart'));
+
+            // 指定图表的配置项和数据
+            var option = {
+                color: ['#3398DB'],
+                title: {
+                    text: '数量'
+                },
+                tooltip: {},
+                legend: {
+                    data: ['']
+                },
+                xAxis: {
+                    data: ["在线", "下线", "故障", "备用", "未知"]
+                },
+                yAxis: {},
+                series:
+                    [{
+                        name: '数量',
+                        type: 'bar',
+                        barWidth: '50%',
+                        data: [{{ upline }}, {{ offline }}, {{ breakdown }}, {{ backup }}, {{ unknown }}],
+                        itemStyle: {
+                            normal: {
+                                //每根柱子颜色设置
+                                color: function (params) {
+                                    let colorList = [
+                                        "#00a65a",
+                                        "#f56954",
+                                        "#932ab6",
+                                        "#3c8dbc",
+                                        "#cccccc",
+                                    ];
+                                    return colorList[params.dataIndex];
+                                }
+                            }
+                        },
+                    }]
+            };
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+        });
+    </script>
+{% endblock js %}

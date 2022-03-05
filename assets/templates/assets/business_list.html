@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+    <title>业务线管理</title>
+{% endblock title %}
+{% block css %}{% endblock %}
+
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>业务线列表</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                        <li class="breadcrumb-item active">业务线列表</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">业务线列表<a href="{% url 'assets:business_add' %}"
+                                           class="btn btn-sm btn-primary ml-3">添加</a></h3>
+        </div>
+
+        <!-- /.card-header -->
+        <div class="card-body">
+            <table id="assets-lists" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>业务线名称</th>
+                    <th>业务线内主机</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for business_unit in business_list %}
+                    <tr aid="{{ business_unit.pk }}">
+                        <td>{{ forloop.counter }}</td>
+                        <td><a href="{% url 'assets:business_detail' business_unit.pk %}">{{ business_unit.name }}</a>
+                        </td>
+                        <td>
+                            {% for server in business_unit.server_set.all %}
+                                <label class="badge bg-primary">{{ server.hostname }}</label>
+                            {% empty %}
+                                -
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <a href="{% url 'assets:business_edit' business_unit.pk %}"
+                               class="btn btn-info btn-sm mb-1"><i class="fas fa-pencil-alt"></i>修改</a>
+                            {% if business_unit.server_set.all.count == 0 %}
+                                <a href="javascript:void(0)" id="{{ business_unit.pk }}"
+                                   title="{{ business_unit.name }}" class="btn btn-danger btn-sm mb-1" onclick="createdeletemodal(this);"><i
+                                        class="fas fa-trash"></i>删除</a>
+                            {% else %}
+                                <a href="javascript:void(0)" class="btn btn-danger btn-sm disabled mb-1" ><i
+                                        class="fas fa-trash"></i>删除</a>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                {% empty %}
+                    <tr>没有数据！</tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <!-- /.card-body -->
+        </div>
+    </div>
+        <!--删除确认窗口-->
+    <div id="modal-container">
+    </div>
+{% endblock %}
+
+{% block js %}
+    <!-- 删除提交 -->
+    <script>
+        createdeletemodal = function (event) {
+            var thisObj = $(event);	//js对象转jquery对象
+            var bus_id = thisObj.attr('id');
+            var bus_name = thisObj.attr("title");
+            // 生成弹出框，使用 \ 换行
+            $("#modal-container").html('<div id="modal-delete-' + bus_id + '" class="iziModal"><div class="container-fluid"><div class="row">\
+									<div class="col-12 p-3"><h5 class="text-center mt-3">确定要删除业务线 "' + bus_name + '" 吗？</h5></div><div class="col-6 p-3">\
+									<button type="button" class="btn btn-block btn-secondary btn-flat" data-iziModal-close>取消</button></div><div class="col-6 p-3">\
+									<a href="javascript:void(0)"><button type="button" class="btn btn-block btn-success btn-flat" id="' + bus_id + '-yes" title="\
+									' + bus_name + '" onclick="deletethis(this);">确定</button></a></div></div></div></div>');
+
+            // 初始化弹出框
+            $("#modal-delete-" + bus_id).iziModal({
+                iconClass: 'icon-announcement',
+                width: 450,
+                //padding: 10,
+                overlayClose: false,	// 是否允许点击模态窗口的外部来关闭模态窗口。
+                closeOnEscape: false, 	// 是否允许通过点击ESC键来关闭模态窗口。
+            });
+
+            // 打开弹出框
+            $('#modal-delete-' + bus_id).iziModal('open');
+        }
+
+
+        deletethis = function (event) {
+            toastr.options.closeButton = true;
+            toastr.options.showMethod = 'slideDown';
+            toastr.options.hideMethod = 'fadeOut';
+            toastr.options.closeMethod = 'fadeOut';
+            toastr.options.timeOut = 4000;
+            toastr.options.extendedTimeOut = 0;
+
+            var thisObj = $(event);	//js对象转jquery对象
+            var bus_id = thisObj.attr('id').split("-")[0];
+            var bus_name = thisObj.attr("title");
+            csrfmiddlewaretoken = '{{ request.COOKIES.csrftoken }}';
+            $.ajax({
+                url: "{% url 'assets_api:business_delete' %}",
+                async: true,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    'csrfmiddlewaretoken': csrfmiddlewaretoken,
+                    'id': bus_id,
+                },
+                timeout: 10000,
+                cache: true,
+                beforeSend: LoadFunction, //加载执行方法
+                error: errFunction,  //错误执行方法
+                success: succFunction, //成功执行方法
+            });
+
+            function LoadFunction() {
+                //$("#aboutcontent").html('删除中...');
+                //alert('删除中');
+            };
+
+            function errFunction() {
+                // 关闭弹出框
+                $('#modal-delete-' + bus_id).iziModal('close');
+                // 消息框
+                toastr.error('删除错误 "' + bus_name + '"');
+            };
+
+            function succFunction(res) {
+                if (res.code != 200) {
+                    // 关闭弹出框
+                    $('#modal-delete-' + bus_id).iziModal('close');
+                    // 消息框
+                    toastr.error('删除错误 "' + bus_name + '": ' + res.err);
+                } else {
+                    // 关闭弹出框
+                    $('#modal-delete-' + bus_id).iziModal('close');
+                    // 消息框
+                    toastr.options.timeOut = 1000;
+                    toastr.options.onHidden = function () {
+                        window.location.href = "{% url 'assets:business_unit_list' %}";
+                    }
+
+                    // 消息框
+                    toastr.success('成功删除 "' + bus_name + '"');
+
+                }
+            };
+        }
+    </script>
+{% endblock js %}

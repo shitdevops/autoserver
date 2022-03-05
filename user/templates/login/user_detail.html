@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>用户信息</title>
+{% endblock title %}
+
+{% block navheader %}
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>用户{{ user.username }}信息</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'user:userlists' %}">用户列表</a></li>
+                        <li class="breadcrumb-item active">用户信息</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+{% endblock navheader %}
+
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">用户信息</h3>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body row">
+            <div class="col-3 pt-1 pb-1 border-bottom">用户名：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.username }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">昵称：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.nickname }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">邮箱：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.email }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">手机：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.phone | default:'' }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">微信：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.weixin | default:'' }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">QQ：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.qq | default:'' }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">性别：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.get_sex_display }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">是否启用：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.enabled }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">角色：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.get_role_display }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">所属组：</div>
+
+            <div class="col-9 pt-1 pb-1 border-bottom">{% if user.groups.all %}{% for group in user.groups.all %}
+                <a  href="{% url 'user:group_detail' group.id %}" class="btn btn-sm btn-success btn-flat">{{ group.group_name }}</a>&nbsp;
+                &nbsp;{% endfor %}{% else %}{% endif %}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">拥有主机数：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ hosts_count }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">创建时间：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.create_time | date:"Y/m/d H:i:s" }}</div>
+            <div class="col-3 pt-1 pb-1 border-bottom">最后登录时间：</div>
+            <div class="col-9 pt-1 pb-1 border-bottom">{{ user.last_login_time | date:"Y/m/d H:i:s" | default:'' }}</div>
+            <div class="col-3 pt-1 pb-1">备注：</div>
+            <div class="col-9 pt-1 pb-1">{{ user.memo | default:'' }}</div>
+        </div>
+        <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+{% endblock content %}
+
+
+

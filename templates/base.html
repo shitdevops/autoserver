@@ -1,0 +1,539 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    {% block title %}
+        <title>资产管理系统</title>
+    {% endblock title %}
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="{% static 'AdminLet/plugins/fontawesome-free/css/all.min.css' %}">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="{% static 'AdminLet/dist/css/adminlte.min.css' %}">
+    <!-- Google Font: Source Sans Pro -->
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+    <!-- dataTables -->
+    <link href="{% static 'AdminLet/plugins/datatables-bs4/css/dataTables.bootstrap4.css' %}" rel="stylesheet">
+
+    <!-- 弹出框插件 -->
+    <link rel="stylesheet" href="{% static 'css/iziModal.min.css' %}">
+
+    <!-- Toastr-->
+    <link rel="stylesheet" href="{% static 'AdminLet/plugins/toastr/toastr.min.css' %}">
+
+{#    <link rel="stylesheet" href="{% static 'AdminLet/plugins/select2/css/select2.min.css' %}">#}
+    <link rel="stylesheet" href="{% static 'AdminLet/plugins/select2/css/select2.css' %}">
+</head>
+<body class="hold-transition sidebar-mini">
+<div class="wrapper">
+
+    <!-- navbar（导航栏） -->
+    <nav class="main-header navbar navbar-expand navbar-default navbar-light">
+        <!-- Left navbar links （顶部左侧导航栏）-->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
+            </li>
+        </ul>
+        <!-- SEARCH FORM （搜索）-->
+{#        <form class="form-inline ml-3">#}
+{#            <div class="input-group input-group-sm">#}
+{#                <input class="form-control form-control-navbar" type="search" placeholder="搜索" aria-label="Search">#}
+{#                <div class="input-group-append">#}
+{#                    <button class="btn btn-navbar" type="submit">#}
+{#                        <i class="fas fa-search"></i>#}
+{#                    </button>#}
+{#                </div>#}
+{#            </div>#}
+{#        </form>#}
+
+        <!-- Right navbar links（右侧导航栏相关） -->
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item dropdown">
+                <!-- dropdown-toggle-->
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                    <img src="/static/img/tx.jpg" class="img-circle elevation-1"
+                         style="max-width:100%;height:100%;"> {{ request.session.nickname }}
+                </a>
+                <div class="dropdown-menu" x-placement="bottom-start"
+                     style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 40px, 0px);">
+                    <a class="dropdown-item personinfo" tabindex="-1"
+                       href="{% url 'user:userinfo' %}"><small>个人信息</small></a>
+                    <a class="dropdown-item changepasswd" tabindex="-1"
+                       href="javascript:void(0);"><small>修改密码</small></a>
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link logout" href="{% url 'user:logout' %}">
+                    <small>退出</small>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!--退出窗口-->
+    <div id="modal-login" class="iziModal">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12 p-3">
+                    <h5 class="text-center mt-3">确定要退出吗？</h5>
+                </div>
+                <div class="col-6 p-3">
+                    <button type="button" class="btn btn-block btn-secondary btn-flat" data-iziModal-close>取消</button>
+                </div>
+                <div class="col-6 p-3">
+                    <a href="{% url 'user:logout' %}">
+                        <button type="button" class="btn btn-block btn-success btn-flat">退出</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--修改密码窗口-->
+    <div id="modal-changepasswd" class="iziModal">
+        <form role="form" method="POST" onsubmit="changepasswd(this);return false;">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="form-group">
+                    <label>当前密码</label>
+                    <input type="password" class="form-control" name="oldpasswd" placeholder="Password" maxlength="256"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label>新密码</label>
+                    <input type="password" class="form-control" name="newpasswd" placeholder="Password" maxlength="256"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label>确认新密码</label>
+                    <input type="password" class="form-control" name="newpasswdagain" placeholder="Password"
+                           maxlength="256" required>
+                </div>
+            </div>
+            <div class="card-footer row">
+                <div class="col-6 pl-3 pr-3">
+                    <button type="button" class="btn btn-block btn-secondary btn-flat" data-iziModal-close>取消</button>
+                </div>
+                <div class="col-6 pl-3 pr-3">
+                    <button type="submit" class="btn btn-block btn-success btn-flat" onclick="javascript:void(0);">修改
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- /.navbar -->
+
+    <!-- Main Sidebar Container（最左侧主边栏导航） -->
+    <aside class="main-sidebar sidebar-light-gray elevation-3">
+        <!-- Brand Logo -->
+        <a href="{% url 'assets:dashboard' %}" class="brand-link">
+            <span class="brand-text font-weight-bold">Auto CMDB</span>
+        </a>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Sidebar user panel (用户面板) -->
+            <div class="user-panel">
+                <div class="fa-pull-left image">
+                    <img src="/static/img/tx.jpg" class="img-circle" alt="User Image">
+                </div>
+                <div class="fa-pull-left info">
+                    <a href="#">{{ request.session.nickname }} <i class="fa fa-circle text-success"></i></a>
+                </div>
+            </div>
+
+            <!-- Sidebar Menu -->
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
+                    data-accordion="false">
+                    <!-- Add icons to the links using the .nav-icon class
+                         with font-awesome or any other icon font library -->
+                    <li class="nav-item has-treeview ">
+                        <a href="{% url 'assets:dashboard' %}" class="nav-link ">
+                            <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <p>
+                                仪表盘
+                            </p>
+                        </a>
+                    </li>
+                {% if request.session.is_superuser %}
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-copy"></i>
+                            <p>
+                                资产管理
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{% url 'assets:server' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>资产列表</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'assets:business_unit_list' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>业务线列表</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'assets:idc_list' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>机房列表</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-chart-pie"></i>
+                            <p>
+                                主机管理
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{% url 'server:host_lists' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>主机列表</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'server:host_groups' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>主机组</p>
+                                </a>
+                            </li>
+                            {% if request.session.is_superuser %}
+                            <li class="nav-item">
+                                <a href="{% url 'server:host_users' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>远程用户</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'webssh:logs' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>在线会话日志</p>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-clock"></i>
+                            <p>
+                                批量处理
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{% url 'batch:cmd' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>执行命令</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {% if request.session.is_superuser %}
+                    <li class="nav-item has-treeview">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-user"></i>
+                            <p>
+                                用户管理
+                                <i class="fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{% url 'user:userlists' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>用户列表</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'user:grouplists' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>用户组列表</p>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{% url 'user:audit_login' %}" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>登录日志</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <!-- /.sidebar-menu -->
+        </div>
+        <!-- /.sidebar -->
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        {% block navheader %}
+
+        {% endblock navheader %}
+
+        <!-- Main content -->
+        <section class="content">
+
+            {% block content %}
+
+            {% endblock content %}
+
+        </section>
+        <!-- /.content -->
+    </div>
+
+    <!-- /.content-wrapper -->
+
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+        <!-- Control sidebar content goes here -->
+        {#    <div class="p-3">#}
+        {#      <h5>Title</h5>#}
+        {#      <p>Sidebar content</p>#}
+        {#    </div>#}
+    </aside>
+    <!-- /.control-sidebar -->
+
+    <!-- Main Footer -->
+    <footer class="main-footer">
+        <!-- To the right -->
+        <div class="float-right d-none d-sm-inline">
+            Auto_CMDB
+        </div>
+        <!-- Default to the left -->
+        <strong>Copyright &copy; 2021-2022 <a href="#/">不想敲代码的运维Giao</a>.</strong> All
+        rights reserved.
+    </footer>
+</div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED SCRIPTS -->
+<!-- jQuery -->
+<script src="{% static 'AdminLet/plugins/jquery/jquery.min.js' %}"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="{% static 'AdminLet/plugins/jquery-ui/jquery-ui.min.js' %}"></script>
+<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+<script>
+    $.widget.bridge('uibutton', $.ui.button)
+</script>
+<!-- Bootstrap 4 -->
+<script src="{% static 'AdminLet/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<!-- AdminLTE App -->
+<script src="{% static 'AdminLet/dist/js/adminlte.min.js' %}"></script>
+<!-- ChartJS -->
+<script src="{% static 'AdminLet/plugins/chart.js/Chart.min.js' %}"></script>
+<!-- Sparkline -->
+<script src="{% static 'AdminLet/plugins/sparklines/sparkline.js' %}"></script>
+<!-- JQVMap -->
+<script src="{% static 'AdminLet/plugins/jqvmap/jquery.vmap.min.js' %}"></script>
+<script src="{% static 'AdminLet/plugins/jqvmap/maps/jquery.vmap.usa.js' %}"></script>
+<!-- jQuery Knob Chart -->
+<script src="{% static 'AdminLet/plugins/jquery-knob/jquery.knob.min.js' %}"></script>
+<!-- daterangepicker -->
+<script src="{% static 'AdminLet/plugins/moment/moment.min.js' %}"></script>
+<script src="{% static 'AdminLet/plugins/daterangepicker/daterangepicker.js' %}"></script>
+<!-- DataTables -->
+<script src="{% static 'AdminLet/plugins/datatables/jquery.dataTables.js' %}"></script>
+<script src="{% static 'AdminLet/plugins/datatables-bs4/js/dataTables.bootstrap4.js' %}"></script>
+
+<!-- layer -->
+<script src="{% static 'layer/layer.js' %}"></script>
+
+<!-- 个人信息弹出框 -->
+<script src="{% static 'js/iziModal.min.js' %}"></script>
+<script src="{% static 'AdminLet/plugins/toastr/toastr.min.js' %}"></script>
+
+<script src="{% static 'jquery.cookie.js' %}"></script>
+
+<!-- Select2 -->
+<script src="{% static 'AdminLet/plugins/select2/js/select2.full.min.js' %}"></script>
+
+<script>
+    /*根据当前url的不同;实现不同的激活active状态*/
+    $('ul.sidebar-menu li').each(function (i) {
+        if ($(this).children().first().attr('href') === '{{ request.path }}') {
+            $(this).addClass('active');
+        } else {
+        }
+    });
+
+    <!-- 表格分页  搜索 排序等-->
+    $(function () {
+        $('#assets-lists').DataTable({
+            /*
+             * iDisplayLength
+             * 默认每页显示多少条记录
+             */
+            "iDisplayLength": 5,
+            /*
+                 * aLengthMenu
+                 * 允许用户选择每页显示多少条记录
+             */
+            "aLengthMenu": [[1, 5, 10, 15, 20, -1], ["1", "5", "10", "15", "20", "所有"]],
+            /*
+                 * oLanguage
+                 * 语言设置，dataTable默认为英文，可再此设置中文显示
+                 * 注意：_MENU_、_START_、_END_、_TOTAL_、_MAX_等通配
+             */
+            "oLanguage": {
+                "sLengthMenu": "每页显示 _MENU_ 条记录",
+                "sZeroRecords": "对不起，没有匹配的数据",
+                "sInfo": "第 _START_ - _END_ 条 / 共 _TOTAL_ 条数据",
+                "sInfoEmpty": "没有匹配的数据",
+                "sInfoFiltered": "(数据表中共 _MAX_ 条记录)",
+                "sProcessing": "正在加载中...",
+                "sSearch": "全文搜索：",
+                "oPaginate": {
+                    "sFirst": "第一页",
+                    "sPrevious": " 上一页 ",
+                    "sNext": " 下一页 ",
+                    "sLast": " 最后一页 "
+                }
+            },
+
+        });
+    })
+
+</script>
+
+
+<script>
+    $("#modal-login").iziModal({
+        //title: "退出",
+        //subtitle: "确认退出",
+        iconClass: 'icon-announcement',
+        width: 400,
+        padding: 10,
+    });
+    $(document).on('click', '.logout', function (event) {
+        event.preventDefault();
+        $('#modal-login').iziModal('open');
+    });
+
+    $("#modal-changepasswd").iziModal({
+        iconClass: 'icon-announcement',
+        //width: 400,
+        padding: 10,
+        overlayClose: false,	// 是否允许点击模态窗口的外部来关闭模态窗口。
+        closeOnEscape: false, 	// 是否允许通过点击ESC键来关闭模态窗口。
+    });
+    $(document).on('click', '.changepasswd', function (event) {
+        event.preventDefault();
+        $('#modal-changepasswd').iziModal('open');
+    });
+
+    // 修改密码
+    changepasswd = function (event) {
+        toastr.options.closeButton = true;
+        toastr.options.showMethod = 'slideDown';
+        toastr.options.hideMethod = 'fadeOut';
+        toastr.options.closeMethod = 'fadeOut';
+        toastr.options.timeOut = 4000;
+        toastr.options.extendedTimeOut = 0;
+
+        var thisObj = $(event);	//js对象转jquery对象
+        var oldpasswd = $(thisObj.find("input[name='oldpasswd']")[0]).val();
+        var newpasswd = $(thisObj.find("input[name='newpasswd']")[0]).val();
+        var newpasswdagain = $(thisObj.find("input[name='newpasswdagain']")[0]).val();
+        csrfmiddlewaretoken = '{{ request.COOKIES.csrftoken }}';
+
+        $.ajax({
+            url: "{% url 'user:changepasswd' %}",
+            async: true,
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                'csrfmiddlewaretoken': csrfmiddlewaretoken,
+                'oldpasswd': oldpasswd,
+                'newpasswd': newpasswd,
+                'newpasswdagain': newpasswdagain,
+            },
+            timeout: 10000,
+            cache: true,
+            beforeSend: LoadFunction, //加载执行方法
+            error: errFunction,  //错误执行方法
+            success: succFunction, //成功执行方法
+        });
+
+        function LoadFunction() {
+            //$("#aboutcontent").html('删除中...');
+            //alert('删除中');
+        };
+
+        function errFunction() {
+            // 消息框
+            toastr.error('修改密码错误');
+        };
+
+        function succFunction(res) {
+            if (res.code != 200) {
+                // 消息框
+                toastr.error('修改密码错误: ' + res.err);
+            } else {
+
+
+                // 消息框
+                toastr.success('修改密码成功, 下次登录生效');
+            }
+        };
+
+        // 关闭弹出框
+        $("#modal-changepasswd").iziModal('close');
+        $(thisObj.find("input[name='oldpasswd']")[0]).val('');
+        $(thisObj.find("input[name='newpasswd']")[0]).val('');
+        $(thisObj.find("input[name='newpasswdagain']")[0]).val('');
+        return false;
+    }
+
+</script>
+
+
+<script>
+	$(function () {
+		//Initialize Select2 Elements
+		$('.select2').select2();
+	});
+	$(function () {
+		//Initialize Select2 Elements
+		$('.select2_multiple').select2({
+			allowClear: true,
+		});
+	});
+</script>
+
+{% block js %}
+
+{% endblock js %}
+
+</body>
+</html>
+
+
