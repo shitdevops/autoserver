@@ -12,13 +12,13 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>资产详细: {{ obj.asset_name }} - {{ obj.sn }}</h1>
+                    <h1>资产详细: {{ obj.hostname }} - {{ obj.sn }}</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="{% url 'assets:dashboard' %}">首页</a></li>
                         <li class="breadcrumb-item"><a href="{% url 'assets:server' %}">资产列表</a></li>
-                        <li class="breadcrumb-item active">{{ obj.asset_name }}</li>
+                        <li class="breadcrumb-item active">{{ obj.hostname }}</li>
                     </ol>
                 </div>
             </div>
@@ -45,7 +45,7 @@
                 </thead>
                 <tbody>
                 <tr>
-                    <td>{{ obj.asset_name }}</td>
+                    <td>{{ obj.hostname }}</td>
 
                     <td>{{ obj.business_unit | default_if_none:"N/A" }}</td>
 

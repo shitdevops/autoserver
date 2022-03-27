@@ -314,6 +314,7 @@ class AnsibleAPI:
         """
         运行 module
         """
+        print(module_name, module_args)
         play_source = dict(
             name='Ansible Run Module',
             hosts=hosts,

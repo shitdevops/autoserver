@@ -89,8 +89,11 @@ def host_update(request):
             'enabled': enabled,
         }
         try:
+            print(hostid)
             user = User.objects.get(username=log_user)
-            remoteuser = RemoteUser.objects.get(id=hostid)
+            print(user)
+            remoteuser = RemoteUser.objects.get(id=binduserid)
+            print(remoteuser)
             data['remote_user'] = remoteuser
             RemoteUserBindHost.objects.filter(id=hostid).update(**data)
             login_event_log(user, 14, '主机 [{}] 更新成功'.format(RemoteUserBindHost.objects.get(id=hostid).hostname),
@@ -265,6 +268,7 @@ def host_group_update(request):
                     )
                 update_group.remoteuserbindhost_set.set(update_hosts)
             else:
+                print(groupid)
                 update_group.remoteuserbindhost_set.set.clear()
             update_group.save()
             login_event_log(user, 29, '主机组 [{}] 更新信息成功'.format(update_group.group_name), request.META.get('REMOTE_ADDR', None), request.META.get('HTTP_USER_AGENT', None))

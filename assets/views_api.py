@@ -267,5 +267,5 @@ def server_delete(request):
         return JsonResponse({'code': 400, 'err': error_message})
     server = get_object_or_404(models.Server, pk=pk)
     server.delete()
-    login_event_log(log_user, 25, '资产 {} 删除成功'.format(server.asset_name), request.META.get('REMOTE_ADDR', None), request.META.get('HTTP_USER_AGENT', None))
+    login_event_log(log_user, 25, '资产 {} 删除成功'.format(server.hostname), request.META.get('REMOTE_ADDR', None), request.META.get('HTTP_USER_AGENT', None))
     return JsonResponse({"code": 200, 'err': ""})
