@@ -212,13 +212,14 @@
                                     <p>主机列表</p>
                                 </a>
                             </li>
+                            {% if request.session.is_superuser %}
                             <li class="nav-item">
                                 <a href="{% url 'server:host_groups' %}" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
                                     <p>主机组</p>
                                 </a>
                             </li>
-                            {% if request.session.is_superuser %}
+
                             <li class="nav-item">
                                 <a href="{% url 'server:host_users' %}" class="nav-link">
                                     <i class="far fa-circle nav-icon"></i>
